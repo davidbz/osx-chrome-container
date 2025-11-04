@@ -168,7 +168,7 @@ poll_and_open_browser() {
     local attempt=0
     
     while ((attempt < max_attempts)); do
-        if curl -s -f "http://localhost:${port}" >/dev/null 2>&1; then
+        if curl -s -f --connect-timeout 2 --max-time 3 "http://localhost:${port}" >/dev/null 2>&1; then
             open "http://localhost:${port}"
             return 0
         fi
@@ -176,7 +176,7 @@ poll_and_open_browser() {
         sleep 1
     done
     
-    log_warn "Service not ready after ${max_attempts} seconds, opening browser anyway"
+    log_warn "Service not ready after polling, opening browser anyway"
     open "http://localhost:${port}"
     return 1
 }
