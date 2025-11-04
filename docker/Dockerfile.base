@@ -46,6 +46,7 @@ RUN apt-get update && apt-get install -y \
 # Create non-root user (Chromium won't run as root)
 RUN useradd -m -s /bin/bash chrome \
     && mkdir -p /home/chrome/.config/chromium/Default \
+    && mkdir -p /home/chrome/extensions \
     && chown -R chrome:chrome /home/chrome
 
 # Copy preferences to enable developer mode

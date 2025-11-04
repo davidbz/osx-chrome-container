@@ -61,6 +61,28 @@ Pass optional Chrome arguments as needed.
 ./run.sh --vnc https://example.com   # Open specific URL
 ```
 
+## Loading Chrome Extensions
+
+You can easily load unpacked Chrome extensions from your host machine:
+
+1. **Place your extension in the `extensions/` directory:**
+   ```bash
+   extensions/
+   ├── my-extension/
+   │   ├── manifest.json
+   │   └── ... (extension files)
+   └── another-extension/
+       └── ...
+   ```
+
+2. **Run Chrome:**
+   ```bash
+   ./run.sh --vnc
+   ```
+   
+   Extensions are automatically loaded! Check `chrome://extensions/` to verify.
+
+
 ## How It Works
 
 ### X11 Method

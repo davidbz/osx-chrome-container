@@ -46,6 +46,11 @@ file_required() {
     fi
 }
 
+prepare_extensions_dir() {
+    # Create extensions directory if it doesn't exist
+    mkdir -p "$(pwd)/extensions"
+}
+
 build_image_if_needed() {
     local dockerfile="$1"
     local image_name="$2"
@@ -169,6 +174,7 @@ run_x11_mode() {
     
     build_image_if_needed "$DOCKERFILE_X11" "$X11_IMAGE"
     file_required "$SECCOMP_PROFILE"
+    prepare_extensions_dir
     
     local -a docker_args=(
         --rm
@@ -178,6 +184,7 @@ run_x11_mode() {
         --name "$X11_IMAGE"
         --security-opt "seccomp=$(pwd)/${SECCOMP_PROFILE}"
         -e "DISPLAY=${ip}:0"
+        -v "$(pwd)/extensions:/home/chrome/extensions:ro"
         "$X11_IMAGE"
         "$CHROME_CMD"
         "$@"
@@ -193,6 +200,7 @@ run_vnc_mode() {
     
     build_image_if_needed "$DOCKERFILE_VNC" "$VNC_IMAGE"
     file_required "$SECCOMP_PROFILE"
+    prepare_extensions_dir
     
     local -r port=6901
     local -r vnc_port=5900
@@ -209,6 +217,7 @@ run_vnc_mode() {
         --security-opt "seccomp=$(pwd)/${SECCOMP_PROFILE}"
         -p "${port}:6901"
         -p "${vnc_port}:5900"
+        -v "$(pwd)/extensions:/home/chrome/extensions:ro"
         "$VNC_IMAGE"
         "$@"
     )
