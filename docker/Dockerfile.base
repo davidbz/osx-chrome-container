@@ -1,0 +1,58 @@
+FROM debian:12
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install common X11 and GUI dependencies
+RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg \
+    ca-certificates \
+    apt-transport-https \
+    libx11-6 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxi6 \
+    libxrandr2 \
+    libxrender1 \
+    libxss1 \
+    libxtst6 \
+    libxkbcommon0 \
+    libgbm1 \
+    libdrm2 \
+    libgl1-mesa-glx \
+    libgl1-mesa-dri \
+    libgtk-3-0 \
+    libatk-bridge2.0-0 \
+    libatspi2.0-0 \
+    libasound2 \
+    libcups2 \
+    libnss3 \
+    libnspr4 \
+    fonts-liberation \
+    libappindicator3-1 \
+    libu2f-udev \
+    xdg-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Chromium
+RUN apt-get update && apt-get install -y \
+    chromium \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user (Chromium won't run as root)
+RUN useradd -m -s /bin/bash chrome \
+    && mkdir -p /home/chrome/.config/chromium/Default \
+    && chown -R chrome:chrome /home/chrome
+
+# Copy preferences to enable developer mode
+COPY --chown=chrome:chrome config/preferences.json /home/chrome/.config/chromium/Default/Preferences
+
+# Add shared Chromium launch script
+COPY config/chrome-launch.sh /usr/local/bin/chrome-launch.sh
+RUN chmod +x /usr/local/bin/chrome-launch.sh
+
+WORKDIR /home/chrome

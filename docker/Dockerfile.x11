@@ -1,0 +1,7 @@
+FROM chrome-base
+
+USER chrome
+
+ENV DISPLAY=:0
+
+CMD ["/usr/local/bin/chrome-launch.sh"]
