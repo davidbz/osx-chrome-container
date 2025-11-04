@@ -162,6 +162,25 @@ get_host_ip() {
     echo "$ip"
 }
 
+poll_and_open_browser() {
+    local port="$1"
+    local max_attempts=30
+    local attempt=0
+    
+    while ((attempt < max_attempts)); do
+        if curl -s -f --connect-timeout 2 --max-time 3 "http://localhost:${port}" >/dev/null 2>&1; then
+            open "http://localhost:${port}"
+            return 0
+        fi
+        ((attempt++))
+        sleep 1
+    done
+    
+    log_warn "Service not ready after polling, opening browser anyway"
+    open "http://localhost:${port}"
+    return 1
+}
+
 run_x11_mode() {
     log_info "=== Chromium in Docker with X11 Forwarding ===\n"
     
@@ -224,8 +243,8 @@ run_vnc_mode() {
     
     log_info "Launching Chromium with VNC (web: http://localhost:${port})\n"
     
-    # Open browser in background after short delay
-    (sleep 3 && open "http://localhost:${port}") &
+    # Poll localhost and open browser when ready
+    poll_and_open_browser "${port}" &
     
     docker run -it "${docker_args[@]}"
     log_info "\nChromium VNC stopped"
