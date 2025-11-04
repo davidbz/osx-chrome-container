@@ -6,6 +6,11 @@
 # AI
 .claude
 
+# User extensions (keep README, ignore extension folders)
+extensions/*
+!extensions/README.md
+!extensions/.gitkeep
+
 # Thumbnails
 ._*
 
