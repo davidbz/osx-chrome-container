@@ -61,6 +61,26 @@ Pass optional Chrome arguments as needed.
 ./run.sh --vnc https://example.com   # Open specific URL
 ```
 
+## Copy/Paste Support (VNC Mode)
+
+Copy/paste between your macOS and the containerized Chrome works seamlessly in VNC mode:
+
+### **Copy from macOS → Paste in Chrome:**
+1. Copy text on your Mac (⌘+C)
+2. In the noVNC interface, click the clipboard icon (📋) in the left sidebar
+3. Paste your content into the clipboard dialog (⌘+V)
+4. Close the dialog
+5. Now paste inside Chrome (Ctrl+V or right-click → Paste)
+
+### **Copy from Chrome → Paste on macOS:**
+1. Copy text in Chrome (Ctrl+C or ⌘+C)
+2. Click the clipboard icon (📋) in the noVNC sidebar
+3. Your copied text will appear in the dialog
+4. Select and copy it (⌘+C)
+5. Paste on your Mac normally (⌘+V)
+
+**Pro Tip:** Some modern browsers support automatic clipboard sync - check the noVNC settings (gear icon) for "Clipboard" options.
+
 ## How It Works
 
 ### X11 Method

@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     websockify \
     openbox \
     dbus-x11 \
+    xclip \
     wget \
     procps \
     && rm -rf /var/lib/apt/lists/*
@@ -20,67 +21,9 @@ RUN cd /opt && \
 
 USER chrome
 
-# Create startup script with proper error handling and timing
-RUN echo '#!/bin/bash\n\
-set -e\n\
-\n\
-echo "=== Starting VNC Environment ==="\n\
-\n\
-# Start D-Bus session bus and export to environment file\n\
-eval $(dbus-launch --sh-syntax)\n\
-echo "export DBUS_SESSION_BUS_ADDRESS=\"$DBUS_SESSION_BUS_ADDRESS\"" > /tmp/dbus-env\n\
-echo "export DBUS_SESSION_BUS_PID=\"$DBUS_SESSION_BUS_PID\"" >> /tmp/dbus-env\n\
-echo "D-Bus session started: $DBUS_SESSION_BUS_ADDRESS"\n\
-\n\
-# Export DISPLAY\n\
-export DISPLAY=:99\n\
-echo "export DISPLAY=:99" >> /tmp/dbus-env\n\
-\n\
-# Start Xvfb with proper options\n\
-Xvfb :99 -screen 0 1280x720x24 -ac +extension GLX +render -noreset &\n\
-XVFB_PID=$!\n\
-echo "Xvfb started with PID: $XVFB_PID"\n\
-\n\
-# Wait for X server to be ready\n\
-for i in {1..10}; do\n\
-  if xdpyinfo -display :99 >/dev/null 2>&1; then\n\
-    echo "X server is ready"\n\
-    break\n\
-  fi\n\
-  echo "Waiting for X server... ($i/10)"\n\
-  sleep 1\n\
-done\n\
-\n\
-# Verify X server is running\n\
-if ! xdpyinfo -display :99 >/dev/null 2>&1; then\n\
-  echo "ERROR: X server failed to start"\n\
-  exit 1\n\
-fi\n\
-\n\
-# Start window manager\n\
-openbox &\n\
-echo "Window manager started"\n\
-sleep 1\n\
-\n\
-# Start x11vnc\n\
-x11vnc -display :99 -nopw -listen 127.0.0.1 -xkb -forever -shared -rfbport 5900 -ncache 10 &\n\
-VNC_PID=$!\n\
-echo "x11vnc started with PID: $VNC_PID"\n\
-sleep 1\n\
-\n\
-# Source environment and start Chromium\n\
-echo "Starting Chromium with environment: DISPLAY=$DISPLAY"\n\
-source /tmp/dbus-env && /usr/local/bin/chrome-launch.sh "$@" &\n\
-CHROME_PID=$!\n\
-echo "Chromium started with PID: $CHROME_PID"\n\
-sleep 2\n\
-\n\
-# Start websockify for browser access (foreground process)\n\
-echo "Starting noVNC on port 6901"\n\
-echo "Access via: http://localhost:6901"\n\
-exec /usr/bin/websockify --web=/opt/noVNC 6901 127.0.0.1:5900\n\
-' > /home/chrome/start-vnc.sh && \
-    chmod +x /home/chrome/start-vnc.sh
+# Copy VNC startup script
+COPY --chown=chrome:chrome config/start-vnc.sh /home/chrome/start-vnc.sh
+RUN chmod +x /home/chrome/start-vnc.sh
 
 EXPOSE 5900 6901
 
