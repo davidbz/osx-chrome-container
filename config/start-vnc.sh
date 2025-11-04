@@ -39,10 +39,9 @@ openbox &
 echo "Window manager started"
 sleep 1
 
-# Start x11vnc
-x11vnc -display $DISPLAY -nopw -listen 127.0.0.1 -xkb -forever -shared -rfbport 5900 -ncache 10 &
+x11vnc -display $DISPLAY -nopw -listen 127.0.0.1 -xkb -forever -shared -rfbport 5900 -ncache 10 -clip both &
 VNC_PID=$!
-echo "x11vnc started with PID: $VNC_PID"
+echo "x11vnc started with PID: $VNC_PID (clipboard sync enabled)"
 sleep 1
 
 # Initialize clipboard (helps with copy/paste)
