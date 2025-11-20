@@ -23,4 +23,4 @@ if [ -d "/home/chrome/extensions" ]; then
     done
 fi
 
-chromium --no-first-run --disable-gpu --disable-software-rasterizer --disable-dev-shm-usage --window-size=1024,768 $EXTENSION_ARGS "$@"
+chromium --no-first-run --disable-gpu --disable-software-rasterizer --disable-dev-shm-usage --window-size=1280,1024 $EXTENSION_ARGS "$@"
