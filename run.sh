@@ -14,7 +14,7 @@ readonly X11_IMAGE="chrome-x11"
 readonly VNC_IMAGE="chrome-vnc"
 readonly CONTAINERS=("chrome-x11" "chrome-vnc")
 readonly IMAGES=("$VNC_IMAGE" "$X11_IMAGE" "$BASE_IMAGE")
-readonly SECCOMP_PROFILE="docker/chrome.json"
+readonly PROFILE_VOLUME="chrome-profile-data"
 readonly XQUARTZ_APP="/Applications/Utilities/XQuartz.app"
 readonly XQUARTZ_PROCESS="Xquartz"
 readonly X11_PORT="6000"
@@ -92,6 +92,28 @@ cleanup_resources() {
     fi
     
     log_warn "Run ./run.sh --vnc or ./run.sh --x11 to rebuild and start."
+}
+
+cleanup_profile_data() {
+    log_warn "=== Cleaning up Chrome profile data ===\n"
+    
+    # Stop and remove containers first
+    for container in "${CONTAINERS[@]}"; do
+        if docker ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
+            log_warn "Stopping container: ${container}"
+            docker rm -f "${container}" &>/dev/null || true
+        fi
+    done
+    
+    # Remove profile volume if it exists
+    if docker volume inspect "$PROFILE_VOLUME" &>/dev/null; then
+        log_warn "Removing Chrome profile volume: $PROFILE_VOLUME"
+        docker volume rm "$PROFILE_VOLUME"
+        log_info "\nProfile data cleanup complete!"
+        log_warn "All cookies, cache, and browsing data have been removed."
+    else
+        log_info "Profile volume $PROFILE_VOLUME not found (already cleaned)"
+    fi
 }
 
 check_xquartz() {
@@ -192,7 +214,6 @@ run_x11_mode() {
     /opt/X11/bin/xhost + "${ip}" &>/dev/null
     
     build_image_if_needed "$DOCKERFILE_X11" "$X11_IMAGE"
-    file_required "$SECCOMP_PROFILE"
     prepare_extensions_dir
     
     local -a docker_args=(
@@ -201,9 +222,10 @@ run_x11_mode() {
         --cpus="4"
         --memory="4g"
         --name "$X11_IMAGE"
-        --security-opt "seccomp=$(pwd)/${SECCOMP_PROFILE}"
+        --security-opt "seccomp=unconfined"
         -e "DISPLAY=${ip}:0"
         -v "$(pwd)/extensions:/home/chrome/extensions:ro"
+        -v "$PROFILE_VOLUME:/home/chrome/.config/chromium"
         "$X11_IMAGE"
         "$CHROME_CMD"
         "$@"
@@ -218,7 +240,6 @@ run_vnc_mode() {
     log_info "=== Chromium in Docker with VNC ===\n"
     
     build_image_if_needed "$DOCKERFILE_VNC" "$VNC_IMAGE"
-    file_required "$SECCOMP_PROFILE"
     prepare_extensions_dir
     
     local -r port=6901
@@ -233,10 +254,11 @@ run_vnc_mode() {
         --cpus="$cpu"
         --memory="$memory"
         --name "$VNC_IMAGE"
-        --security-opt "seccomp=$(pwd)/${SECCOMP_PROFILE}"
+        --security-opt "seccomp=unconfined"
         -p "${port}:6901"
         -p "${vnc_port}:5900"
         -v "$(pwd)/extensions:/home/chrome/extensions:ro"
+        -v "$PROFILE_VOLUME:/home/chrome/.config/chromium"
         "$VNC_IMAGE"
         "$@"
     )
@@ -251,7 +273,7 @@ run_vnc_mode() {
 }
 
 show_usage() {
-    log_warn "Usage: $0 --x11 [chrome args] | --vnc [chrome args] | --cleanup"
+    log_warn "Usage: $0 --x11 [chrome args] | --vnc [chrome args] | --cleanup | --cleanup-data"
     exit 1
 }
 
@@ -260,6 +282,10 @@ main() {
     case "${1:-}" in
         --cleanup)
             cleanup_resources
+            exit 0
+            ;;
+        --cleanup-data)
+            cleanup_profile_data
             exit 0
             ;;
         --x11)
