@@ -218,7 +218,6 @@ run_x11_mode() {
     
     local -a docker_args=(
         --rm
-        --init
         --shm-size=2g
         --cpus="4"
         --memory="4g"
@@ -251,7 +250,6 @@ run_vnc_mode() {
     
     local -a docker_args=(
         --rm
-        --init
         --shm-size="$shm"
         --cpus="$cpu"
         --memory="$memory"
