@@ -52,6 +52,7 @@ Pass optional Chrome arguments as needed.
 ./run.sh --vnc [chrome args]    # Launch with VNC (browser-based)
 ./run.sh --x11 [chrome args]    # Launch with X11 (XQuartz)
 ./run.sh --cleanup              # Remove all Docker images/containers
+./run.sh --cleanup-data         # Remove Chrome profile data (cookies, cache, browsing data)
 ```
 
 **Examples:**
