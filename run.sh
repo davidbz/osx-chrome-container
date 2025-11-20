@@ -14,7 +14,6 @@ readonly X11_IMAGE="chrome-x11"
 readonly VNC_IMAGE="chrome-vnc"
 readonly CONTAINERS=("chrome-x11" "chrome-vnc")
 readonly IMAGES=("$VNC_IMAGE" "$X11_IMAGE" "$BASE_IMAGE")
-readonly SECCOMP_PROFILE="docker/chrome.json"
 readonly XQUARTZ_APP="/Applications/Utilities/XQuartz.app"
 readonly XQUARTZ_PROCESS="Xquartz"
 readonly X11_PORT="6000"
@@ -192,7 +191,6 @@ run_x11_mode() {
     /opt/X11/bin/xhost + "${ip}" &>/dev/null
     
     build_image_if_needed "$DOCKERFILE_X11" "$X11_IMAGE"
-    file_required "$SECCOMP_PROFILE"
     prepare_extensions_dir
     
     local -a docker_args=(
@@ -201,7 +199,7 @@ run_x11_mode() {
         --cpus="4"
         --memory="4g"
         --name "$X11_IMAGE"
-        --security-opt "seccomp=$(pwd)/${SECCOMP_PROFILE}"
+        --security-opt "seccomp=unconfined"
         -e "DISPLAY=${ip}:0"
         -v "$(pwd)/extensions:/home/chrome/extensions:ro"
         "$X11_IMAGE"
@@ -218,7 +216,6 @@ run_vnc_mode() {
     log_info "=== Chromium in Docker with VNC ===\n"
     
     build_image_if_needed "$DOCKERFILE_VNC" "$VNC_IMAGE"
-    file_required "$SECCOMP_PROFILE"
     prepare_extensions_dir
     
     local -r port=6901
@@ -233,7 +230,7 @@ run_vnc_mode() {
         --cpus="$cpu"
         --memory="$memory"
         --name "$VNC_IMAGE"
-        --security-opt "seccomp=$(pwd)/${SECCOMP_PROFILE}"
+        --security-opt "seccomp=unconfined"
         -p "${port}:6901"
         -p "${vnc_port}:5900"
         -v "$(pwd)/extensions:/home/chrome/extensions:ro"
