@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y \
     xclip \
     wget \
     procps \
+    pcmanfm \
+    xterm \
     && rm -rf /var/lib/apt/lists/*
 
 # Install noVNC for browser access
@@ -24,6 +26,9 @@ USER chrome
 # Copy VNC startup script
 COPY --chown=chrome:chrome config/start-vnc.sh /home/chrome/start-vnc.sh
 RUN chmod +x /home/chrome/start-vnc.sh
+
+# Copy desktop shortcut for easy Chrome relaunching
+COPY --chown=chrome:chrome config/chrome.desktop /home/chrome/chrome.desktop
 
 EXPOSE 5900 6901
 

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Chromium Browser
+Comment=Launch Chromium Browser
+Exec=/usr/local/bin/chrome-launch.sh
+Icon=chromium
+Terminal=false
+Categories=Network;WebBrowser;
