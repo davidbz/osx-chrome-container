@@ -48,6 +48,17 @@ sleep 1
 echo "Initializing clipboard support"
 xclip -selection clipboard -i /dev/null 2>/dev/null || true
 
+# Set up desktop shortcut for easy Chrome relaunching
+echo "Setting up desktop shortcut"
+mkdir -p /home/chrome/Desktop
+cp /home/chrome/chrome.desktop /home/chrome/Desktop/
+chmod +x /home/chrome/Desktop/chrome.desktop
+
+# Start PCManFM in desktop mode to show desktop icons
+pcmanfm --desktop --profile LXDE &
+echo "Desktop manager started"
+sleep 1
+
 # Source environment and start Chromium
 echo "Starting Chromium with environment: DISPLAY=$DISPLAY"
 source /tmp/dbus-env && /usr/local/bin/chrome-launch.sh "$@" &
