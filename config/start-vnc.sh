@@ -48,12 +48,28 @@ sleep 1
 echo "Initializing clipboard support"
 xclip -selection clipboard -i /dev/null 2>/dev/null || true
 
-# Source environment and start Chromium
-echo "Starting Chromium with environment: DISPLAY=$DISPLAY"
-source /tmp/dbus-env && /usr/local/bin/chrome-launch.sh "$@" &
-CHROME_PID=$!
-echo "Chromium started with PID: $CHROME_PID"
-sleep 2
+# Function to start Chromium
+start_chromium() {
+    echo "Starting Chromium with environment: DISPLAY=$DISPLAY"
+    source /tmp/dbus-env && /usr/local/bin/chrome-launch.sh "$@" &
+    CHROME_PID=$!
+    echo "Chromium started with PID: $CHROME_PID"
+    sleep 2  # Give it time to start
+}
+
+# Start Chromium initially
+start_chromium
+
+# Monitor and relaunch Chromium if it exits
+(
+    while true; do
+        if ! kill -0 $CHROME_PID 2>/dev/null; then
+            echo "Chromium exited, restarting..."
+            start_chromium
+        fi
+        sleep 5  # Check every 5 seconds
+    done
+) &
 
 # Start websockify for browser access (foreground process)
 echo "Starting noVNC on port 6901"
