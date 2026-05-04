@@ -1,5 +1,7 @@
 #!/bin/bash
 set -euo pipefail
+set -x
+
 
 # Color codes
 readonly GREEN='\033[0;32m'
@@ -125,7 +127,8 @@ check_xquartz() {
 }
 
 is_xquartz_listening() {
-    netstat -an | grep -q "\.${X11_PORT}.*LISTEN"
+    ret=$(netstat -an | grep -q "\.${X11_PORT}.*LISTEN")
+    echo $ret
 }
 
 setup_xquartz() {
@@ -211,7 +214,7 @@ run_x11_mode() {
     local ip
     ip=$(get_host_ip)
     log_info "Configuring X11 permissions for ${ip}..."
-    /opt/X11/bin/xhost + "${ip}" &>/dev/null
+    DISPLAY=${ip}:0 /opt/X11/bin/xhost +"${ip}" &>/dev/null
     
     build_image_if_needed "$DOCKERFILE_X11" "$X11_IMAGE"
     prepare_extensions_dir
@@ -223,7 +226,7 @@ run_x11_mode() {
         --memory="4g"
         --name "$X11_IMAGE"
         --security-opt "seccomp=unconfined"
-        -e "DISPLAY=${ip}:0"
+        -e "DISPLAY=host.docker.internal:0"
         -v "$(pwd)/extensions:/home/chrome/extensions:ro"
         -v "$PROFILE_VOLUME:/home/chrome/.config/chromium"
         "$X11_IMAGE"
