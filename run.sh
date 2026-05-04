@@ -1,7 +1,5 @@
 #!/bin/bash
 set -euo pipefail
-set -x
-
 
 # Color codes
 readonly GREEN='\033[0;32m'
