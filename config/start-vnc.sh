@@ -48,23 +48,28 @@ sleep 1
 echo "Initializing clipboard support"
 xclip -selection clipboard -i /dev/null 2>/dev/null || true
 
-# Set up desktop shortcut for easy Chrome relaunching
-echo "Setting up desktop shortcut"
-mkdir -p /home/chrome/Desktop
-cp /home/chrome/chrome.desktop /home/chrome/Desktop/
-chmod +x /home/chrome/Desktop/chrome.desktop
+# Function to start Chromium
+start_chromium() {
+    echo "Starting Chromium with environment: DISPLAY=$DISPLAY"
+    source /tmp/dbus-env && /usr/local/bin/chrome-launch.sh "$@" &
+    CHROME_PID=$!
+    echo "Chromium started with PID: $CHROME_PID"
+    sleep 2  # Give it time to start
+}
 
-# Start PCManFM in desktop mode to show desktop icons
-pcmanfm --desktop --profile LXDE &
-echo "Desktop manager started"
-sleep 1
+# Start Chromium initially
+start_chromium
 
-# Source environment and start Chromium
-echo "Starting Chromium with environment: DISPLAY=$DISPLAY"
-source /tmp/dbus-env && /usr/local/bin/chrome-launch.sh "$@" &
-CHROME_PID=$!
-echo "Chromium started with PID: $CHROME_PID"
-sleep 2
+# Monitor and relaunch Chromium if it exits
+(
+    while true; do
+        if ! kill -0 $CHROME_PID 2>/dev/null; then
+            echo "Chromium exited, restarting..."
+            start_chromium
+        fi
+        sleep 5  # Check every 5 seconds
+    done
+) &
 
 # Start websockify for browser access (foreground process)
 echo "Starting noVNC on port 6901"
